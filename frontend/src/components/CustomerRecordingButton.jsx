@@ -47,7 +47,7 @@ export default function CustomerRecordingButton({ customerCount, onCustomerCount
         data-testid="customer-recording-button"
         title="Click to set number of customers"
       >
-        👥 Customers: {customerCount}
+        Customers: {customerCount}
       </button>
 
       {isModalOpen && (

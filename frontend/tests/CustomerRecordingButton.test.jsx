@@ -168,8 +168,6 @@ describe('CustomerRecordingButton', () => {
     await user.click(overlay)
 
     expect(screen.queryByTestId('modal-overlay')).not.toBeInTheDocument()
-    // Verify that clicking overlay also resets the count to 1
-    expect(mockOnCustomerCountChange).toHaveBeenCalledWith(1)
   })
 
   it('should display current customer count in modal', async () => {

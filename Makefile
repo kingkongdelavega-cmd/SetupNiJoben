@@ -11,6 +11,6 @@ push:
 	@git add .
 	@read -p "Enter commit message: " msg; \
 	git commit -m "$$msg"
-	@git push origin main
+	@git push 
 	@echo "Changes pushed successfully."
 

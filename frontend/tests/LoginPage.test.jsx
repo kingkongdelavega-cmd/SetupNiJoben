@@ -79,8 +79,10 @@ describe('LoginPage - Role-Based Authentication', () => {
     const loginButton = screen.getByTestId('login-button')
     await user.click(loginButton)
 
-    // Email validation is synchronous - error should appear immediately
-    // Just verify that onLogin was not called (validation failed)
+    const errorMessage = screen.queryByTestId('error-message')
+    if (errorMessage) {
+      expect(errorMessage).toHaveTextContent('valid email format')
+    }
     expect(mockOnLogin).not.toHaveBeenCalled()
   })
 

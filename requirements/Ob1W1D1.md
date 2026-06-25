@@ -28,7 +28,7 @@
 - User can view the POS dashboard upon opening the system.
 - User can navigate through the sidebar menu.
 - User can select the number of customers who ordered.
-- User can see a list of products showing its image, name, and price.
+- User can see a list of products showing its name, and price.
 - User can view an order summary section for selected items.
 
 ### Instructor Notes

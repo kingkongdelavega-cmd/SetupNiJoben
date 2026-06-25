@@ -12,6 +12,10 @@ export default function CustomerRecordingButton({ customerCount, onCustomerCount
 
   const handleClose = () => {
     setIsModalOpen(false)
+  }
+
+  const handleCancel = () => {
+    setIsModalOpen(false)
     // Reset customer count to 1 when cancel is clicked
     onCustomerCountChange(1)
   }
@@ -47,7 +51,7 @@ export default function CustomerRecordingButton({ customerCount, onCustomerCount
       </button>
 
       {isModalOpen && (
-        <div className="modal-overlay" onClick={handleClose} data-testid="modal-overlay">
+        <div className="modal-overlay" onClick={handleCancel} data-testid="modal-overlay">
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Set Number of Customers</h3>
 
@@ -88,7 +92,7 @@ export default function CustomerRecordingButton({ customerCount, onCustomerCount
             <div className="modal-actions">
               <button
                 className="btn-cancel"
-                onClick={handleClose}
+                onClick={handleCancel}
                 data-testid="modal-cancel"
               >
                 Cancel

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import StockStatusBadge from './StockStatusBadge';
 import SearchInput from './SearchInput';
 import FilterDropdown from './FilterDropdown';
+import InventoryAdjustmentForm from './InventoryAdjustmentForm';
 
 const mockData = [
   { id: 'I-001', name: 'Coffee Beans', category: 'Beverage', inStock: 25, status: 'Good' },
@@ -14,6 +15,8 @@ const mockData = [
 export default function InventoryTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [isAdjustmentFormOpen, setIsAdjustmentFormOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const categories = [...new Set(mockData.map(item => item.category))];
 
@@ -25,6 +28,16 @@ export default function InventoryTable() {
       return matchesSearch && matchesCategory;
     });
   }, [searchTerm, selectedCategory]);
+
+  const handleEditClick = (item) => {
+    setSelectedItem(item);
+    setIsAdjustmentFormOpen(true);
+  };
+
+  const handleAdjustmentSubmit = (adjustmentData) => {
+    console.log('Adjustment submitted:', adjustmentData);
+    setIsAdjustmentFormOpen(false);
+  };
 
   return (
     <div className="inventory-container">
@@ -49,6 +62,7 @@ export default function InventoryTable() {
               <th>CATEGORY</th>
               <th>IN STOCK</th>
               <th>STATUS</th>
+              <th>ACTION</th>
             </tr>
           </thead>
           <tbody>
@@ -62,11 +76,21 @@ export default function InventoryTable() {
                   <td>
                     <StockStatusBadge status={item.status} inStock={item.inStock} />
                   </td>
+                  <td>
+                    <button
+                      className="edit-btn"
+                      onClick={() => handleEditClick(item)}
+                      data-testid={`edit-btn-${item.id}`}
+                      aria-label={`Edit ${item.name}`}
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
                   No items found
                 </td>
               </tr>
@@ -74,6 +98,13 @@ export default function InventoryTable() {
           </tbody>
         </table>
       </div>
+
+      <InventoryAdjustmentForm
+        isOpen={isAdjustmentFormOpen}
+        onClose={() => setIsAdjustmentFormOpen(false)}
+        item={selectedItem}
+        onSubmit={handleAdjustmentSubmit}
+      />
     </div>
   );
 }

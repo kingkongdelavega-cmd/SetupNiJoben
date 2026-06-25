@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1782359260564" clover="3.2.0">
-  <project timestamp="1782359260564" name="All files">
-    <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5" elements="11" coveredelements="11" complexity="0" loc="6" ncloc="6" packages="2" files="4" classes="4"/>
+<coverage generated="1782359979152" clover="3.2.0">
+  <project timestamp="1782359979152" name="All files">
+    <metrics statements="37" coveredstatements="35" conditionals="17" coveredconditionals="15" methods="16" coveredmethods="16" elements="70" coveredelements="66" complexity="0" loc="37" ncloc="37" packages="2" files="7" classes="7"/>
     <package name="src">
       <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
       <file name="App.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\App.jsx">
@@ -10,20 +10,60 @@
       </file>
     </package>
     <package name="src.components">
-      <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
+      <metrics statements="36" coveredstatements="34" conditionals="17" coveredconditionals="15" methods="15" coveredmethods="15"/>
       <file name="DashboardContainer.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\DashboardContainer.jsx">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="5" count="3" type="stmt"/>
       </file>
+      <file name="FilterDropdown.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\FilterDropdown.jsx">
+        <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
+        <line num="5" count="59" type="stmt"/>
+        <line num="8" count="6" type="stmt"/>
+        <line num="23" count="232" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+      </file>
       <file name="InventoryTable.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\InventoryTable.jsx">
-        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="3" count="1" type="stmt"/>
-        <line num="9" count="3" type="stmt"/>
-        <line num="23" count="6" type="stmt"/>
+        <metrics statements="11" coveredstatements="11" conditionals="8" coveredconditionals="8" methods="5" coveredmethods="5"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="15" count="51" type="stmt"/>
+        <line num="16" count="51" type="stmt"/>
+        <line num="18" count="250" type="stmt"/>
+        <line num="20" count="51" type="stmt"/>
+        <line num="21" count="50" type="stmt"/>
+        <line num="22" count="250" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="250" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="250" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="51" type="stmt"/>
+        <line num="57" count="126" type="stmt"/>
+      </file>
+      <file name="SearchInput.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\SearchInput.jsx">
+        <metrics statements="3" coveredstatements="3" conditionals="1" coveredconditionals="1" methods="2" coveredmethods="2"/>
+        <line num="5" count="58" type="stmt"/>
+        <line num="9" count="34" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
       </file>
       <file name="Sidebar.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\Sidebar.jsx">
         <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="4" count="3" type="stmt"/>
+      </file>
+      <file name="StockStatusBadge.jsx" path="C:\Users\MicaJoyce Biadoy\OneDrive\Desktop\123\SetupNiJoben\frontend\src\components\StockStatusBadge.jsx">
+        <metrics statements="16" coveredstatements="14" conditionals="8" coveredconditionals="6" methods="3" coveredmethods="3"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="135" type="cond" truecount="3" falsecount="1"/>
+        <line num="7" count="58" type="stmt"/>
+        <line num="9" count="52" type="stmt"/>
+        <line num="11" count="25" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="18" count="135" type="cond" truecount="3" falsecount="1"/>
+        <line num="20" count="58" type="stmt"/>
+        <line num="22" count="52" type="stmt"/>
+        <line num="24" count="25" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="31" count="135" type="stmt"/>
+        <line num="32" count="135" type="stmt"/>
+        <line num="34" count="135" type="stmt"/>
+        <line num="54" count="3" type="stmt"/>
       </file>
     </package>
   </project>

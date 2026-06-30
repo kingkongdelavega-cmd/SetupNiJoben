@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/setupTests.js']
+    // Use the Inventory app's setup file. The test suite for this repo lives under 
+    // SetupNiJoben/frontend/Inventory/src/__tests__.
+    setupFiles: ['./Inventory/src/setupTests.js']
   }
 })

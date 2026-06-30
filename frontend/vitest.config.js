@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/setupTests.js']
+    setupFiles: ['./Inventory/src/setupTests.js'],
+    deps: {
+      optimizer: {
+        web: { include: ['@testing-library/react'] }
+      }
+    }
   }
 })

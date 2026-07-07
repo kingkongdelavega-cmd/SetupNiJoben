@@ -1,10 +1,4 @@
-const express = require('express')
-const router = express.Router()
-
-const initialInventory = require('../data/mockInventory')
-
-// In-memory mutable store (project currently uses mock data)
-const inventory = initialInventory.map((item) => ({ ...item }))
+const { inventory } = require('./inventoryStore')
 
 function computeStatus(inStock) {
   if (inStock === 0) return 'OutOfStock'
@@ -13,9 +7,7 @@ function computeStatus(inStock) {
   return 'Good'
 }
 
-router.get('/', (req, res) => {
-  const { q, category } = req.query
-
+function listInventory({ q, category } = {}) {
   const keyword = typeof q === 'string' ? q.trim().toLowerCase() : ''
   const normalizedCategory = typeof category === 'string' ? category.trim() : ''
 
@@ -34,25 +26,27 @@ router.get('/', (req, res) => {
     })
   }
 
-  res.json({ data: result })
-})
+  return result
+}
 
-router.put('/:id', (req, res) => {
-  const { id } = req.params
+function updateInventoryById(id, { quantity, reason, notes } = {}) {
   const item = inventory.find((it) => it.id === id)
-
   if (!item) {
-    return res.status(404).json({ error: 'Inventory item not found' })
+    const err = new Error('Inventory item not found')
+    err.statusCode = 404
+    throw err
   }
 
-  const { quantity, reason, notes } = req.body || {}
-
   if (typeof quantity !== 'number' || Number.isNaN(quantity)) {
-    return res.status(400).json({ error: '`quantity` must be a number' })
+    const err = new Error('`quantity` must be a number')
+    err.statusCode = 400
+    throw err
   }
 
   if (typeof reason !== 'string' || reason.trim() === '') {
-    return res.status(400).json({ error: '`reason` must be provided' })
+    const err = new Error('`reason` must be provided')
+    err.statusCode = 400
+    throw err
   }
 
   // quantity can be positive (restock) or negative (consumption/usage)
@@ -63,8 +57,12 @@ router.put('/:id', (req, res) => {
   // notes/reason accepted for future audit log (not stored in this simplified version)
   void notes
 
-  res.json({ data: item })
-})
+  return item
+}
 
-module.exports = router
+module.exports = {
+  computeStatus,
+  listInventory,
+  updateInventoryById,
+}
 

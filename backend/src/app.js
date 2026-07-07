@@ -1,5 +1,5 @@
 const express = require('express')
-const inventoryRouter = require('./routes/inventory')
+const inventoryRouter = require('./routes/inventoryRoute')
 
 const app = express()
 app.use(express.json())

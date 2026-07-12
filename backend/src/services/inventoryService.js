@@ -1,4 +1,12 @@
-const { inventory } = require('./inventoryStore')
+const { supabase } = require('./supabaseClient')
+
+function requireSupabase() {
+  if (!supabase) {
+    const err = new Error('Supabase is not configured (missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)')
+    err.statusCode = 500
+    throw err
+  }
+}
 
 function computeStatus(inStock) {
   if (inStock === 0) return 'OutOfStock'
@@ -7,11 +15,43 @@ function computeStatus(inStock) {
   return 'Good'
 }
 
-function listInventory({ q, category } = {}) {
+function toNumber(value) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : NaN
+}
+
+async function listInventory({ q, category } = {}) {
+  requireSupabase()
   const keyword = typeof q === 'string' ? q.trim().toLowerCase() : ''
+
   const normalizedCategory = typeof category === 'string' ? category.trim() : ''
 
-  let result = inventory
+  // Fetch joined inventory items + category.
+  let query = supabase
+    .from('inventory_items')
+    .select('id, item_name, unit, current_stock, category_id, inventory_categories(name)')
+
+  // Filtering by category name is easier client-side, since the query is already joined.
+  // (If you want it pushed down, we can use nested filters.)
+  const { data, error } = await query
+
+  if (error) {
+    const err = new Error(error.message || 'Failed to list inventory')
+    err.statusCode = 500
+    throw err
+  }
+
+  let result = (data || []).map((row) => {
+    const categoryName = row.inventory_categories?.name || ''
+    const inStock = Number(row.current_stock)
+    return {
+      id: row.id,
+      name: row.item_name,
+      category: categoryName,
+      inStock,
+      status: computeStatus(inStock),
+    }
+  })
 
   if (normalizedCategory) {
     result = result.filter((item) => item.category === normalizedCategory)
@@ -20,8 +60,8 @@ function listInventory({ q, category } = {}) {
   if (keyword) {
     result = result.filter((item) => {
       return (
-        item.name.toLowerCase().includes(keyword) ||
-        item.id.toLowerCase().includes(keyword)
+        String(item.name).toLowerCase().includes(keyword) ||
+        String(item.id).toLowerCase().includes(keyword)
       )
     })
   }
@@ -29,15 +69,16 @@ function listInventory({ q, category } = {}) {
   return result
 }
 
-function updateInventoryById(id, { quantity, reason, notes } = {}) {
-  const item = inventory.find((it) => it.id === id)
-  if (!item) {
-    const err = new Error('Inventory item not found')
-    err.statusCode = 404
+async function updateInventoryById(id, { quantity, reason, notes } = {}) {
+  requireSupabase()
+  if (!id) {
+    const err = new Error('`id` must be provided')
+    err.statusCode = 400
     throw err
   }
 
-  if (typeof quantity !== 'number' || Number.isNaN(quantity)) {
+  const qty = toNumber(quantity)
+  if (typeof quantity === 'undefined' || Number.isNaN(qty)) {
     const err = new Error('`quantity` must be a number')
     err.statusCode = 400
     throw err
@@ -49,15 +90,69 @@ function updateInventoryById(id, { quantity, reason, notes } = {}) {
     throw err
   }
 
-  // quantity can be positive (restock) or negative (consumption/usage)
-  const newStock = item.inStock + quantity
-  item.inStock = newStock
-  item.status = computeStatus(newStock)
+  // Lock-step update:
+  // 1) fetch current stock
+  // 2) update current_stock
+  // 3) insert inventory_movements audit row
+  const { data: itemRow, error: fetchError } = await supabase
+    .from('inventory_items')
+    .select('id, item_name, current_stock, inventory_categories(name)')
+    .eq('id', id)
+    .single()
 
-  // notes/reason accepted for future audit log (not stored in this simplified version)
-  void notes
+  if (fetchError) {
+    const err = new Error(fetchError.message || 'Inventory item not found')
+    err.statusCode = 404
+    throw err
+  }
 
-  return item
+  const currentStock = Number(itemRow.current_stock)
+  const newStock = currentStock + qty
+  const status = computeStatus(newStock)
+
+  const movementType = qty > 0 ? 'IN' : 'OUT'
+
+  // Remarks: keep it simple but include both reason + notes.
+  const remarks = [reason.trim(), typeof notes === 'string' && notes.trim() ? `(${notes.trim()})` : '']
+    .filter(Boolean)
+    .join(' ')
+
+  const { error: updateError } = await supabase
+    .from('inventory_items')
+    .update({
+      current_stock: newStock,
+    })
+    .eq('id', id)
+
+  if (updateError) {
+    const err = new Error(updateError.message || 'Failed to update inventory stock')
+    err.statusCode = 500
+    throw err
+  }
+
+  const { error: movementError } = await supabase.from('inventory_movements').insert({
+    inventory_item_id: id,
+    batch_id: null,
+    movement_type: movementType,
+    quantity: Math.abs(qty),
+    reference_type: 'MANUAL',
+    reference_id: null,
+    remarks,
+  })
+
+  if (movementError) {
+    const err = new Error(movementError.message || 'Failed to record inventory movement')
+    err.statusCode = 500
+    throw err
+  }
+
+  return {
+    id: itemRow.id,
+    name: itemRow.item_name,
+    category: itemRow.inventory_categories?.name || '',
+    inStock: newStock,
+    status,
+  }
 }
 
 module.exports = {
@@ -65,4 +160,5 @@ module.exports = {
   listInventory,
   updateInventoryById,
 }
+
 

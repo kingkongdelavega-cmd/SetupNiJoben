@@ -8,28 +8,36 @@ const {
 
 router.get('/', async (req, res) => {
   const { q, category } = req.query
+
   try {
     const data = await listInventory({ q, category })
-    res.json({ data })
+    res.status(200).json({
+      success: true,
+      data,
+    })
   } catch (err) {
-    const status = err?.statusCode || 500
-    res.status(status).json({ error: err.message || 'Internal server error' })
+    res.status(err?.statusCode || 500).json({
+      success: false,
+      error: {
+        message: err?.message || 'Internal server error',
+      },
+    })
   }
 })
 
-router.put('/:id', async (req, res) => {
+
+router.put('/:id', (req, res) => {
   const { id } = req.params
   const { quantity, reason, notes } = req.body || {}
 
   try {
-    const data = await updateInventoryById(id, { quantity, reason, notes })
+    const data = updateInventoryById(id, { quantity, reason, notes })
     res.json({ data })
   } catch (err) {
     const status = err?.statusCode || 500
     res.status(status).json({ error: err.message || 'Internal server error' })
   }
 })
-
 
 module.exports = router
 

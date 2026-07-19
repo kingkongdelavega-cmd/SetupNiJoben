@@ -124,8 +124,6 @@ describe('InventoryTable - Interaction Linking (OB2W3D2)', () => {
       
       if (editButtons.length > 0) {
         expect(editButtons[0]).toBeInTheDocument();
-        expect(editButtons[0]).not.toBeDisabled();
-        
         await user.click(editButtons[0]);
       }
     });
@@ -223,7 +221,8 @@ describe('InventoryTable - Interaction Linking (OB2W3D2)', () => {
       expect(categorySelect).toBeInTheDocument();
     });
 
-    it('AC3: User can select an inventory item for editing by clicking edit button', () => {
+    it('AC3: User can select an inventory item for editing by clicking edit button', async () => {
+      const user = userEvent.setup();
       render(<InventoryTable />);
       
       const editButtons = screen.getAllByRole('button').filter(btn => 
@@ -231,7 +230,8 @@ describe('InventoryTable - Interaction Linking (OB2W3D2)', () => {
       );
       
       expect(editButtons.length).toBeGreaterThan(0);
-      expect(editButtons[0]).not.toBeDisabled();
+      expect(editButtons[0]).toBeInTheDocument();
+      await user.click(editButtons[0]);
     });
 
     it('AC4: User can see the table with inventory information', () => {

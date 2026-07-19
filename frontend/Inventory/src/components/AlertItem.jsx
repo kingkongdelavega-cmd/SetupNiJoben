@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function AlertItem({ alert }) {
   const formatTime = (timestamp) => {
@@ -87,18 +86,4 @@ export default function AlertItem({ alert }) {
       </div>
     </div>
   );
-}
-
-AlertItem.propTypes = {
-  alert: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    itemId: PropTypes.string.isRequired,
-    itemName: PropTypes.string.isRequired,
-    category: PropTypes.string,
-    currentStock: PropTypes.number.isRequired,
-    threshold: PropTypes.number.isRequired,
-    severity: PropTypes.oneOf(['critical', 'warning']).isRequired,
-    message: PropTypes.string.isRequired,
-    timestamp: PropTypes.instanceOf(Date).isRequired,
-  }).isRequired,
 };

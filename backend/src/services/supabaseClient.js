@@ -1,22 +1,32 @@
-const { createClient } = require('@supabase/supabase-js')
+// Supabase client abstraction.
+//
+// Tests should mock this module to return a fake Supabase client.
+// Real runtime can later replace the placeholder with @supabase/supabase-js.
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  // Allow unit tests to run without Supabase env.
-  // Routes/services that require Supabase should fail at call-time.
-  module.exports = { supabase: null }
-  return
+function createSupabasePlaceholder() {
+  return {
+    from() {
+      throw new Error(
+        'Supabase client not configured. Provide a real implementation or mock this module in tests.'
+      )
+    },
+  }
 }
 
-// Use service role key for server-side privileges.
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    persistSession: false,
-  },
-})
+/**
+ * Returns a Supabase-like client.
+ *
+ * Note: This backend currently runs without @supabase/supabase-js. The
+ * placeholder keeps runtime safe; tests mock this module.
+ */
+function getSupabase() {
+  return createSupabasePlaceholder()
+}
 
-module.exports = { supabase }
+module.exports = {
+  getSupabase,
+}
+
+
 
 

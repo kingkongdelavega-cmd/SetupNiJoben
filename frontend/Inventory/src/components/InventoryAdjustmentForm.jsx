@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import Modal from './Modal';
 import QuantityInput from './QuantityInput';
 import AdjustmentReasonDropdown from './AdjustmentReasonDropdown';
@@ -110,15 +109,4 @@ export default function InventoryAdjustmentForm({ isOpen, onClose, item, onSubmi
       </form>
     </Modal>
   );
-}
-
-InventoryAdjustmentForm.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    inStock: PropTypes.number.isRequired,
-  }),
-  onSubmit: PropTypes.func.isRequired,
 };

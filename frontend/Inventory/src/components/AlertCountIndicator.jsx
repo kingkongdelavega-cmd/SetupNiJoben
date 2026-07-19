@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function AlertCountIndicator({ count, onClick, hasUnread = false }) {
   return (
@@ -21,10 +20,4 @@ export default function AlertCountIndicator({ count, onClick, hasUnread = false 
       )}
     </button>
   );
-}
-
-AlertCountIndicator.propTypes = {
-  count: PropTypes.number.isRequired,
-  onClick: PropTypes.func.isRequired,
-  hasUnread: PropTypes.bool,
 };

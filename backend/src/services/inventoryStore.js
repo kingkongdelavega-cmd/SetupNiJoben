@@ -1,5 +1,9 @@
-// Inventory store is now Supabase-backed.
-// Kept as a module to avoid breaking older imports, but it is unused by the new service.
-module.exports = {}
+const initialInventory = require('../models/inventoryModel')
 
+// In-memory mutable store (project currently uses mock data)
+const inventory = initialInventory.map((item) => ({ ...item }))
+
+module.exports = {
+  inventory,
+}
 

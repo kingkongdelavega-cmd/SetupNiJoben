@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function QuantityInput({ value, onChange, min = 0, max = 9999, label = 'Quantity' }) {
   const handleChange = (e) => {
@@ -61,12 +60,4 @@ export default function QuantityInput({ value, onChange, min = 0, max = 9999, la
       </div>
     </div>
   );
-}
-
-QuantityInput.propTypes = {
-  value: PropTypes.number.isRequired,
-  onChange: PropTypes.func.isRequired,
-  min: PropTypes.number,
-  max: PropTypes.number,
-  label: PropTypes.string,
 };

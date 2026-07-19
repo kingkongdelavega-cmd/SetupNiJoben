@@ -1,4 +1,4 @@
-const mockAlerts = [
+module.exports = [
   {
     id: 'alert-1',
     itemName: 'Coffee Beans - Arabica',
@@ -32,6 +32,5 @@ const mockAlerts = [
     threshold: 20,
     message: 'Stock critically low. Immediate reorder recommended.',
   },
-];
+]
 
-export default mockAlerts;

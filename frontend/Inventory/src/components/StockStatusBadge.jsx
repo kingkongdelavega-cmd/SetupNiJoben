@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -50,8 +50,3 @@ export default function StockStatusBadge({ status, inStock }) {
     </span>
   );
 }
-
-StockStatusBadge.propTypes = {
-  status: PropTypes.oneOf(['Good', 'Low', 'NearingExpiration']).isRequired,
-  inStock: PropTypes.number.isRequired
-};

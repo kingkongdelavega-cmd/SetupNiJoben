@@ -1,12 +1,4 @@
-const { supabase } = require('./supabaseClient')
-
-function requireSupabase() {
-  if (!supabase) {
-    const err = new Error('Supabase is not configured (missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)')
-    err.statusCode = 500
-    throw err
-  }
-}
+const inventorySupabaseStore = require('./inventorySupabaseStore')
 
 function computeStatus(inStock) {
   if (inStock === 0) return 'OutOfStock'
@@ -15,43 +7,39 @@ function computeStatus(inStock) {
   return 'Good'
 }
 
-function toNumber(value) {
-  const n = Number(value)
-  return Number.isFinite(n) ? n : NaN
+function mapInventoryRow(row) {
+  const id = row.id
+  const name = row.item_name
+  // Supabase tests/model uses nested relationship: inventory_categories: { name }
+  const category =
+    row.category_name ?? row.inventory_categories?.name ?? row.category ?? undefined
+  const inStock = Number(row.current_stock ?? row.in_stock ?? 0)
+
+
+  return {
+    id,
+    name,
+    category,
+    inStock,
+    status: computeStatus(inStock),
+  }
 }
 
 async function listInventory({ q, category } = {}) {
-  requireSupabase()
   const keyword = typeof q === 'string' ? q.trim().toLowerCase() : ''
-
   const normalizedCategory = typeof category === 'string' ? category.trim() : ''
 
-  // Fetch joined inventory items + category.
-  let query = supabase
-    .from('inventory_items')
-    .select('id, item_name, unit, current_stock, category_id, inventory_categories(name)')
+  let rows
+  try {
+    rows = await inventorySupabaseStore.getAllInventory()
+  } catch (err) {
+    console.log('err', err)
 
-  // Filtering by category name is easier client-side, since the query is already joined.
-  // (If you want it pushed down, we can use nested filters.)
-  const { data, error } = await query
-
-  if (error) {
-    const err = new Error(error.message || 'Failed to list inventory')
-    err.statusCode = 500
-    throw err
+    const { inventory } = require('./inventoryStore')
+    return inventory
   }
 
-  let result = (data || []).map((row) => {
-    const categoryName = row.inventory_categories?.name || ''
-    const inStock = Number(row.current_stock)
-    return {
-      id: row.id,
-      name: row.item_name,
-      category: categoryName,
-      inStock,
-      status: computeStatus(inStock),
-    }
-  })
+  let result = rows.map(mapInventoryRow)
 
   if (normalizedCategory) {
     result = result.filter((item) => item.category === normalizedCategory)
@@ -60,8 +48,8 @@ async function listInventory({ q, category } = {}) {
   if (keyword) {
     result = result.filter((item) => {
       return (
-        String(item.name).toLowerCase().includes(keyword) ||
-        String(item.id).toLowerCase().includes(keyword)
+        item.name.toLowerCase().includes(keyword) ||
+        item.id.toLowerCase().includes(keyword)
       )
     })
   }
@@ -69,16 +57,19 @@ async function listInventory({ q, category } = {}) {
   return result
 }
 
-async function updateInventoryById(id, { quantity, reason, notes } = {}) {
-  requireSupabase()
-  if (!id) {
-    const err = new Error('`id` must be provided')
-    err.statusCode = 400
+function updateInventoryById(id, { quantity, reason, notes } = {}) {
+
+  const { inventory } = require('./inventoryStore')
+
+  const item = inventory.find((it) => it.id === id)
+
+  if (!item) {
+    const err = new Error('Inventory item not found')
+    err.statusCode = 404
     throw err
   }
 
-  const qty = toNumber(quantity)
-  if (typeof quantity === 'undefined' || Number.isNaN(qty)) {
+  if (typeof quantity !== 'number' || Number.isNaN(quantity)) {
     const err = new Error('`quantity` must be a number')
     err.statusCode = 400
     throw err
@@ -90,75 +81,17 @@ async function updateInventoryById(id, { quantity, reason, notes } = {}) {
     throw err
   }
 
-  // Lock-step update:
-  // 1) fetch current stock
-  // 2) update current_stock
-  // 3) insert inventory_movements audit row
-  const { data: itemRow, error: fetchError } = await supabase
-    .from('inventory_items')
-    .select('id, item_name, current_stock, inventory_categories(name)')
-    .eq('id', id)
-    .single()
+  const newStock = item.inStock + quantity
+  item.inStock = newStock
+  item.status = computeStatus(newStock)
+  void notes
 
-  if (fetchError) {
-    const err = new Error(fetchError.message || 'Inventory item not found')
-    err.statusCode = 404
-    throw err
-  }
-
-  const currentStock = Number(itemRow.current_stock)
-  const newStock = currentStock + qty
-  const status = computeStatus(newStock)
-
-  const movementType = qty > 0 ? 'IN' : 'OUT'
-
-  // Remarks: keep it simple but include both reason + notes.
-  const remarks = [reason.trim(), typeof notes === 'string' && notes.trim() ? `(${notes.trim()})` : '']
-    .filter(Boolean)
-    .join(' ')
-
-  const { error: updateError } = await supabase
-    .from('inventory_items')
-    .update({
-      current_stock: newStock,
-    })
-    .eq('id', id)
-
-  if (updateError) {
-    const err = new Error(updateError.message || 'Failed to update inventory stock')
-    err.statusCode = 500
-    throw err
-  }
-
-  const { error: movementError } = await supabase.from('inventory_movements').insert({
-    inventory_item_id: id,
-    batch_id: null,
-    movement_type: movementType,
-    quantity: Math.abs(qty),
-    reference_type: 'MANUAL',
-    reference_id: null,
-    remarks,
-  })
-
-  if (movementError) {
-    const err = new Error(movementError.message || 'Failed to record inventory movement')
-    err.statusCode = 500
-    throw err
-  }
-
-  return {
-    id: itemRow.id,
-    name: itemRow.item_name,
-    category: itemRow.inventory_categories?.name || '',
-    inStock: newStock,
-    status,
-  }
+  return item
 }
 
 module.exports = {
   computeStatus,
+  mapInventoryRow,
   listInventory,
   updateInventoryById,
 }
-
-

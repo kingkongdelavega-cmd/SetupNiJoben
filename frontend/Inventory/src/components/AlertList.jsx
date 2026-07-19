@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import AlertItem from './AlertItem';
 
 export default function AlertList({ alerts }) {
@@ -25,19 +24,4 @@ export default function AlertList({ alerts }) {
       ))}
     </div>
   );
-}
-
-AlertList.propTypes = {
-  alerts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      itemId: PropTypes.string.isRequired,
-      itemName: PropTypes.string.isRequired,
-      currentStock: PropTypes.number.isRequired,
-      threshold: PropTypes.number.isRequired,
-      severity: PropTypes.oneOf(['critical', 'warning']).isRequired,
-      message: PropTypes.string.isRequired,
-      timestamp: PropTypes.instanceOf(Date).isRequired,
-    })
-  ).isRequired,
 };

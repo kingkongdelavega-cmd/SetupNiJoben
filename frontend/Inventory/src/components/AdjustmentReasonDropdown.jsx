@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 const ADJUSTMENT_REASONS = [
   { value: 'Restock', label: 'Restock' },
@@ -33,11 +32,5 @@ export default function AdjustmentReasonDropdown({ value, onChange, label = 'Adj
     </div>
   );
 }
-
-AdjustmentReasonDropdown.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  label: PropTypes.string,
-};
 
 export { ADJUSTMENT_REASONS };

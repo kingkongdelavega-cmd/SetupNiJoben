@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+
 
 export default function FilterDropdown({ categories, selectedCategory, onChange }) {
   return (
@@ -27,9 +27,3 @@ export default function FilterDropdown({ categories, selectedCategory, onChange 
     </select>
   );
 }
-
-FilterDropdown.propTypes = {
-  categories: PropTypes.arrayOf(PropTypes.string).isRequired,
-  selectedCategory: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired
-};

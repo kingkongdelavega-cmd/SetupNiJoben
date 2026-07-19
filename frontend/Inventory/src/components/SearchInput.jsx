@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+
 
 export default function SearchInput({ value, onChange, placeholder = 'Search items...' }) {
   return (
@@ -24,8 +24,4 @@ export default function SearchInput({ value, onChange, placeholder = 'Search ite
   );
 }
 
-SearchInput.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string
-};
+

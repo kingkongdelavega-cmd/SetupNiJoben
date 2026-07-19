@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function LowStockWarningBanner({ alertCount, onOpenPanel }) {
   if (alertCount === 0) return null;
@@ -28,9 +27,4 @@ export default function LowStockWarningBanner({ alertCount, onOpenPanel }) {
       </div>
     </div>
   );
-}
-
-LowStockWarningBanner.propTypes = {
-  alertCount: PropTypes.number.isRequired,
-  onOpenPanel: PropTypes.func.isRequired,
 };

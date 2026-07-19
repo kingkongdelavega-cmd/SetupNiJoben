@@ -1,9 +1,25 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardContainer from '../components/DashboardContainer';
+import * as inventoryApi from '../services/inventoryApi';
+
+const mockInventory = [
+  { id: 'I-001', name: 'Coffee Beans', category: 'Beverage', inStock: 25, status: 'Good' },
+  { id: 'I-002', name: 'Milk', category: 'Dairy', inStock: 5, status: 'Low' },
+];
+
+vi.mock('../services/inventoryApi', () => ({
+  fetchInventory: vi.fn(),
+  updateInventory: vi.fn(),
+}));
 
 describe('DashboardContainer - Alert Integration (Ob2W3D1)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    inventoryApi.fetchInventory.mockResolvedValue(mockInventory);
+  });
+
   it('renders the dashboard with alert components', () => {
     render(<DashboardContainer />);
     expect(screen.getByText(/Inventory Dashboard/i)).toBeInTheDocument();
@@ -57,8 +73,9 @@ describe('DashboardContainer - Alert Integration (Ob2W3D1)', () => {
     expect(alertPanel).not.toBeInTheDocument();
   });
 
-  it('displays inventory table below alerts', () => {
+  it('displays inventory table below alerts', async () => {
     render(<DashboardContainer />);
+    await waitForElementToBeRemoved(() => screen.queryByTestId('inventory-loading'));
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
   });

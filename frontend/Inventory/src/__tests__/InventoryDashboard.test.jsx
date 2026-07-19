@@ -1,9 +1,26 @@
 import React from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
+import { render, screen, within, waitForElementToBeRemoved } from '@testing-library/react'
 
 import App from '../App'
+import * as inventoryApi from '../services/inventoryApi'
+
+const mockInventory = [
+  { id: 'I-001', name: 'Coffee Beans', category: 'Beverage', inStock: 25, status: 'Good' },
+  { id: 'I-002', name: 'Milk', category: 'Dairy', inStock: 5, status: 'Low' },
+]
+
+vi.mock('../services/inventoryApi', () => ({
+  fetchInventory: vi.fn(),
+  updateInventory: vi.fn(),
+}))
 
 describe('Inventory Dashboard (Ob2W1D1)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    inventoryApi.fetchInventory.mockResolvedValue(mockInventory)
+  })
+
   test('renders sidebar with navigation links', () => {
     render(<App />)
     const nav = screen.getByRole('navigation')
@@ -15,8 +32,9 @@ describe('Inventory Dashboard (Ob2W1D1)', () => {
     expect(navWithin.getByRole('link', { name: /Settings/i })).toBeInTheDocument()
   })
 
-  test('renders inventory table with correct headers', () => {
+  test('renders inventory table with correct headers', async () => {
     render(<App />)
+    await waitForElementToBeRemoved(() => screen.queryByTestId('inventory-loading'))
     const table = screen.getByRole('table', { name: /inventory-table/i })
     expect(table).toBeInTheDocument()
     expect(screen.getByText('ITEM ID')).toBeInTheDocument()

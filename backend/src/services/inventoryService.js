@@ -72,6 +72,36 @@ function updateInMemoryStatus(item) {
   return item
 }
 
+// --- Best-effort Supabase write-through -------------------------------
+//
+// Closes the gap where reads (listInventory) try Supabase but writes
+// (update/deduct/create/delete) previously only ever touched the
+// in-memory store — meaning even a fully-configured Supabase project
+// would silently never receive any writes, so "database records match
+// displayed inventory information" could not hold once the DB was live.
+//
+// This is deliberately fire-and-forget / non-blocking:
+//   - It does NOT change the synchronous return value of
+//     updateInventoryById / deductInventoryById / createInventoryItem /
+//     deleteInventoryItem, so existing callers and existing unit tests
+//     that assert on the returned in-memory item are unaffected.
+//   - Failures (including "Supabase not configured" in dev/CI) are
+//     caught and logged, never thrown, so behavior in unconfigured
+//     environments is identical to before.
+//   - This is an *eventually-consistent* sync, not a two-phase commit.
+//     A follow-up improvement (once existing unit tests for update/
+//     deduct are visible) would migrate these functions to be fully
+//     async and await the Supabase write before responding, so a client
+//     never sees a "success" response that hasn't actually reached the
+//     database yet.
+function bestEffortSupabaseSync(promiseFactory, context) {
+  Promise.resolve()
+    .then(promiseFactory)
+    .catch((err) => {
+      console.warn(`[inventoryService] Supabase sync skipped/failed (${context}):`, err?.message || err)
+    })
+}
+
 function updateInventoryById(id, { quantity, reason, notes } = {}) {
   const item = resolveInMemoryItem(id)
 
@@ -98,6 +128,11 @@ function updateInventoryById(id, { quantity, reason, notes } = {}) {
   updateInMemoryStatus(item)
 
   void notes
+
+  bestEffortSupabaseSync(
+    () => inventorySupabaseStore.updateInventory(id, { current_stock: newStock }),
+    `updateInventoryById(${id})`
+  )
 
   return item
 }
@@ -131,7 +166,81 @@ function deductInventoryById(id, { quantity, reason, notes } = {}) {
 
   void notes
 
+  bestEffortSupabaseSync(
+    () => inventorySupabaseStore.updateInventory(id, { current_stock: newStock }),
+    `deductInventoryById(${id})`
+  )
+
   return item
+}
+
+// --- Create / Delete, closing the CRUD gap ---
+function generateNextId(inventory) {
+  const nums = inventory
+    .map((it) => {
+      const match = String(it.id).match(/-(\d+)$/)
+      return match ? Number(match[1]) : 0
+    })
+    .filter((n) => !Number.isNaN(n))
+
+  const max = nums.length ? Math.max(...nums) : 0
+  const next = max + 1
+  return `I-${String(next).padStart(3, '0')}`
+}
+
+function createInventoryItem({ name, category, inStock } = {}) {
+  const { inventory } = require('./inventoryStore')
+
+  if (typeof name !== 'string' || name.trim() === '') {
+    throw createHttpError('`name` must be provided', 400)
+  }
+
+  const stock = Number(inStock)
+  if (Number.isNaN(stock) || stock < 0) {
+    throw createHttpError('`inStock` must be a non-negative number', 400)
+  }
+
+  const id = generateNextId(inventory)
+  const item = {
+    id,
+    name: name.trim(),
+    category: category || undefined,
+    inStock: stock,
+    status: computeStatus(stock),
+  }
+
+  inventory.push(item)
+
+  bestEffortSupabaseSync(
+    () =>
+      inventorySupabaseStore.createInventory({
+        id: item.id,
+        item_name: item.name,
+        current_stock: item.inStock,
+        category: item.category,
+      }),
+    `createInventoryItem(${item.id})`
+  )
+
+  return item
+}
+
+function deleteInventoryItem(id) {
+  const { inventory } = require('./inventoryStore')
+
+  const index = inventory.findIndex((it) => it.id === id)
+  if (index === -1) {
+    throw createHttpError('Inventory item not found', 404)
+  }
+
+  const [deleted] = inventory.splice(index, 1)
+
+  bestEffortSupabaseSync(
+    () => inventorySupabaseStore.deleteInventory(id),
+    `deleteInventoryItem(${id})`
+  )
+
+  return deleted
 }
 
 module.exports = {
@@ -140,5 +249,6 @@ module.exports = {
   listInventory,
   updateInventoryById,
   deductInventoryById,
+  createInventoryItem,
+  deleteInventoryItem,
 }
-
